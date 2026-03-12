@@ -836,15 +836,35 @@ classify_student <- function(score) {
 # 1. Viết function tính lương ròng
 # Input: lương cơ bản, phụ cấp, số ngày làm việc, số giờ tăng ca
 # Output: lương ròng sau thuế
+calc_net_salary <- function(base, allowance, days, ot_hours) {
+  daily_wage <- base / 26
+  ot_wage <- (daily_wage / 8) * 1.5 * ot_hours
+  total_income <- (daily_wage * days) + allowance + ot_wage
+  
+  # Tính thuế đơn giản
+  tax <- if(total_income > 15000000) total_income * 0.1 else 0
+  return(total_income - tax)}
 
 # 2. Viết function chuẩn hóa điểm thi
 # Input: vector điểm thô
 # Output: vector điểm chuẩn hóa (0-100)
 # Công thức: (điểm - min) / (max - min) * 100
+normalize_scores <- function(scores) {
+  s_min <- min(scores, na.rm = TRUE)
+  s_max <- max(scores, na.rm = TRUE)
+  (scores - s_min) / (s_max - s_min) * 100}
 
 # 3. Viết function phân tích dữ liệu sinh viên
 # Input: data frame (tên, tuổi, điểm)
 # Output: thống kê mô tả đầy đủ
+analyze_students <- function(df) {
+  res <- list(
+    summary_stats = summary(df$diem),
+    average_age = mean(df$tuoi),
+    top_student = df[which.max(df$diem), ],
+    student_count = nrow(df)
+  )
+  return(res)}
 
 # ==============================================================================
 # TÀI LIỆU THAM KHẢO
