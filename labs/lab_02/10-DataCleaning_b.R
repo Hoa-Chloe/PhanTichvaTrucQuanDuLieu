@@ -17,158 +17,142 @@
 # AcceptedCmp1 - 5, Response: Phản hồi của khách với các chiến dịch marketing (1=Yes, 0=No)
 
 # =========================================================
-# 2.2. BƯỚC 1: Load và Khám phá Dữ liệu
+# 2.2. LOAD DATA
 # =========================================================
 
-# Load dữ liệu (dữ liệu phân cách bằng tab)
-campaign <- read.csv("D:/R/labs/data/dataset - customer personality analysis/marketing_campaign.csv", sep = "\t")
+# Đọc file CSV từ đường dẫn
+# sep = "\t" vì file được phân cách bằng tab
+campaign <- read.csv(
+  "D:/R/labs/data/dataset - customer personality analysis/marketing_campaign.csv",
+  sep = "\t"
+)
 
+# =========================================================
+# 2.3. XEM DỮ LIỆU BAN ĐẦU
+# =========================================================
+
+# Mở bảng dữ liệu trong RStudio
 View(campaign)
 
-# Xem 6 dòng đầu
+# Xem 6 dòng đầu tiên để hiểu cấu trúc
 head(campaign)
 
-# Kiểm tra cấu trúc
+# Xem 6 dòng cuối để kiểm tra dữ liệu
+tail(campaign)
+
+# Kiểm tra số dòng và số cột
+dim(campaign)
+
+# Kiểm tra kiểu dữ liệu từng cột
 str(campaign)
 
-# Tóm tắt thống kê
+# Xem thống kê mô tả (min, max, mean,...)
 summary(campaign)
 
 # =========================================================
-# Loại bỏ các cột không cần thiết
-# ID, Z_CostContact, Z_Revenue thường không dùng trong phân tích
+# 2.4. XÓA CỘT KHÔNG CẦN THIẾT
 # =========================================================
 
-head(campaign[, -c(1,27,28)])
-
+# Loại bỏ:
+# - ID: không dùng trong phân tích
+# - Z_CostContact và Z_Revenue: không có ý nghĩa
 campaign <- campaign[, -c(1,27,28)]
 
+# Kiểm tra lại số cột sau khi xóa
+dim(campaign)
+
 # =========================================================
-# 2.3. BƯỚC 2: Xử lý Missing Data
+# 2.5. KIỂM TRA MISSING DATA
 # =========================================================
 
-# Tìm các dòng bị thiếu dữ liệu
+# Đếm tổng số giá trị NA
+sum(is.na(campaign))
+
+# Hiển thị các dòng có NA
 campaign[!complete.cases(campaign), ]
 
-# Đếm số dòng bị thiếu
+# Đếm số dòng có NA
 length(campaign[!complete.cases(campaign), ])
 
-# ---------------------------------------------------------
-# Xử lý biến Income
-# ---------------------------------------------------------
+# =========================================================
+# 2.6. XỬ LÝ BIẾN INCOME
+# =========================================================
 
+# Xem thống kê biến Income
 summary(campaign$Income)
 
-# Tính median (bỏ NA)
+# Tính median (bỏ qua NA)
 median_income <- median(campaign$Income, na.rm = TRUE)
 
-# Điền NA bằng median
+# Điền giá trị NA bằng median
 campaign$Income[is.na(campaign$Income)] <- median_income
 
-# Kiểm tra lại
+# Kiểm tra lại NA
 sum(is.na(campaign$Income))
 
-# Kiểm tra lại toàn bộ dataset
-sum(!complete.cases(campaign))
-
 # =========================================================
-# 2.4. BƯỚC 3: Feature Engineering (Tạo biến mới)
+# 2.7. FEATURE ENGINEERING
 # =========================================================
 
-# ---------------------------------------------------------
-# Tạo biến Age
-# ---------------------------------------------------------
-
+# Lấy năm hiện tại từ hệ thống
 current_year <- as.numeric(format(Sys.Date(), "%Y"))
 
+# Tạo biến Age = năm hiện tại - năm sinh
 campaign$Age <- current_year - campaign$Year_Birth
 
-summary(campaign$Age)
-
-# ---------------------------------------------------------
-# Tổng số trẻ trong gia đình
-# ---------------------------------------------------------
-
+# Tạo biến tổng số con
 campaign$Total_Children <- campaign$Kidhome + campaign$Teenhome
 
-summary(campaign$Total_Children)
-
-# ---------------------------------------------------------
-# Tổng chi tiêu
-# ---------------------------------------------------------
-
-campaign$Total_Spending <- campaign$MntWines +
+# Tạo biến tổng chi tiêu
+campaign$Total_Spending <-
+  campaign$MntWines +
   campaign$MntFruits +
   campaign$MntMeatProducts +
   campaign$MntFishProducts +
   campaign$MntSweetProducts +
   campaign$MntGoldProds
 
+# Kiểm tra các biến mới
+summary(campaign$Age)
+summary(campaign$Total_Children)
 summary(campaign$Total_Spending)
 
 # =========================================================
-# 2.5. BƯỚC 4: Chuyển đổi Categorical Data thành Factor
+# 2.8. CHUYỂN ĐỔI BIẾN CATEGORICAL
 # =========================================================
 
-str(campaign)
-
-# ---------------------------------------------------------
-# Education - Trình độ học vấn
-# ---------------------------------------------------------
-
-summary(factor(campaign$Education))
-
+# Chuyển Education thành factor có thứ tự
 campaign$Education <- factor(
   campaign$Education,
-  levels = c("Basic", "2n Cycle", "Graduation", "Master", "PhD"),
+  levels = c("Basic","2n Cycle","Graduation","Master","PhD"),
   ordered = TRUE
 )
 
-# ---------------------------------------------------------
-# Marital Status
-# ---------------------------------------------------------
-
-summary(factor(campaign$Marital_Status))
-
-# Gom các giá trị hiếm thành "Single"
+# Gom các giá trị hiếm về "Single"
 campaign$Marital_Status[
-  campaign$Marital_Status %in% c("Alone", "Absurd", "YOLO")
+  campaign$Marital_Status %in% c("Alone","Absurd","YOLO")
 ] <- "Single"
 
+# Chuyển thành factor
 campaign$Marital_Status <- factor(campaign$Marital_Status)
 
-# ---------------------------------------------------------
-# Date Variable
-# ---------------------------------------------------------
-
-summary(campaign$Dt_Customer)
-
+# Chuyển dạng ngày
 campaign$Dt_Customer <- as.Date(
   campaign$Dt_Customer,
   format = "%d-%m-%Y"
 )
 
 # =========================================================
-# 2.6. BƯỚC 5: Tự động hóa với lapply()
+# 2.9. XỬ LÝ BIẾN NHỊ PHÂN
 # =========================================================
 
-# Các biến nhị phân
+# Danh sách các biến nhị phân
 binary_vars <- c(
-  "AcceptedCmp1",
-  "AcceptedCmp2",
-  "AcceptedCmp3",
-  "AcceptedCmp4",
-  "AcceptedCmp5",
-  "Complain",
-  "Response"
+  "AcceptedCmp1","AcceptedCmp2","AcceptedCmp3",
+  "AcceptedCmp4","AcceptedCmp5","Complain","Response"
 )
 
-# Kiểm tra trước khi chuyển
-lapply(campaign[, binary_vars], function(x) {
-  summary(factor(x))
-})
-
-# Chuyển sang factor yes/no
+# Chuyển 0/1 thành no/yes
 campaign[, binary_vars] <- lapply(
   campaign[, binary_vars],
   factor,
@@ -176,42 +160,144 @@ campaign[, binary_vars] <- lapply(
   labels = c("no","yes")
 )
 
+# =========================================================
+# 2.10. CHUẨN HÓA TÊN CỘT
+# =========================================================
+
+# Đưa về chữ thường
+colnames(campaign) <- tolower(colnames(campaign))
+
+# Thay khoảng trắng bằng _
+colnames(campaign) <- gsub(" ", "_", colnames(campaign))
+
 # Kiểm tra lại
-str(campaign[, binary_vars])
+colnames(campaign)
 
 # =========================================================
-# 2.7. BƯỚC 6: Kiểm tra Outliers
+# 2.11. XÓA DỮ LIỆU TRÙNG
 # =========================================================
 
-# Boxplot thu nhập
-boxplot(campaign$Income,
-        main="Income Distribution",
-        horizontal=TRUE)
+# Đếm số dòng trùng
+sum(duplicated(campaign))
 
-# Boxplot tổng chi tiêu
-boxplot(campaign$Total_Spending,
-        main="Total Spending Distribution",
-        horizontal=TRUE)
+# Xóa dòng trùng
+campaign <- campaign[!duplicated(campaign), ]
+
+# Kiểm tra lại
+sum(duplicated(campaign))
 
 # =========================================================
-# 2.8. BƯỚC 7: Kiểm tra kết quả cuối
+# 2.12. XỬ LÝ OUTLIERS
 # =========================================================
 
-# Kiểm tra cấu trúc
+# Loại tuổi không hợp lệ (<18 hoặc >100)
+campaign <- campaign[campaign$age >= 18 & campaign$age <= 100, ]
+
+# Loại income <= 0
+campaign <- campaign[campaign$income > 0, ]
+
+# Tính IQR để phát hiện outlier
+q1 <- quantile(campaign$income, 0.25)
+q3 <- quantile(campaign$income, 0.75)
+iqr <- q3 - q1
+
+# Xác định ngưỡng trên
+upper <- q3 + 1.5 * iqr
+
+# Loại outlier
+campaign <- campaign[campaign$income <= upper, ]
+
+# =========================================================
+# 2.13. TEXT CLEANING
+# =========================================================
+
+# Chuẩn hóa chữ (viết hoa chữ cái đầu)
+campaign$education <- tools::toTitleCase(tolower(campaign$education))
+campaign$marital_status <- tools::toTitleCase(tolower(campaign$marital_status))
+
+# Xóa khoảng trắng dư
+campaign$education <- trimws(campaign$education)
+campaign$marital_status <- trimws(campaign$marital_status)
+
+# Kiểm tra giá trị unique
+unique(campaign$education)
+unique(campaign$marital_status)
+
+# =========================================================
+# 2.14. XỬ LÝ NGÀY
+# =========================================================
+
+# Tính số ngày khách hàng đã tham gia
+campaign$customer_days <- as.numeric(Sys.Date() - campaign$dt_customer)
+
+# Kiểm tra
+summary(campaign$customer_days)
+
+# Loại giá trị lỗi (âm)
+campaign <- campaign[campaign$customer_days >= 0, ]
+
+# =========================================================
+# 2.15. CHUẨN HÓA DỮ LIỆU
+# =========================================================
+
+# Chuẩn hóa income
+campaign$income_scaled <- scale(campaign$income)
+
+# Chuẩn hóa spending
+campaign$total_spending_scaled <- scale(campaign$total_spending)
+
+# =========================================================
+# 2.16. LOG TRANSFORM
+# =========================================================
+
+# Giảm skewness
+campaign$log_income <- log1p(campaign$income)
+campaign$log_spending <- log1p(campaign$total_spending)
+
+# =========================================================
+# 2.17. KIỂM TRA BIẾN SỐ
+# =========================================================
+
+summary(campaign$age)
+hist(campaign$age)
+
+summary(campaign$total_children)
+table(campaign$total_children)
+
+# =========================================================
+# 2.18. KIỂM TRA CATEGORICAL
+# =========================================================
+
+table(campaign$education)
+prop.table(table(campaign$education))
+
+table(campaign$marital_status)
+prop.table(table(campaign$marital_status))
+
+# =========================================================
+# 2.19. KIỂM TRA LOGIC
+# =========================================================
+
+# Chi tiêu = 0
+campaign[campaign$total_spending == 0, ]
+
+# Income cao nhưng chi tiêu thấp
+campaign[campaign$income > 100000 & campaign$total_spending < 100, ]
+
+# =========================================================
+# 2.20. KIỂM TRA CUỐI
+# =========================================================
+
 str(campaign)
-
-# Tóm tắt thống kê
 summary(campaign)
-
-# Kiểm tra missing data
-sum(!complete.cases(campaign))
+dim(campaign)
 
 # =========================================================
-# 2.9. Lưu dữ liệu sạch
+# 2.21. LƯU FILE
 # =========================================================
 
 write.csv(
   campaign,
-  "../data/campaign_cleaned.csv",
-  row.names = FALSE)
-
+  "../data/campaign_cleaned_final.csv",
+  row.names = FALSE
+)

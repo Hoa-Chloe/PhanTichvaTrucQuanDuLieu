@@ -1,0 +1,7 @@
+The 2021 Games are the fourth Olympic Games to be held in Japan, following the Tokyo 1964 (Summer), Sapporo 1972 (Winter), and Nagano 1998 (Winter) games.
+The 2021 Summer Olympics , officially the Games of the XXXII Olympiad and branded as Tokyo 2021, is an ongoing international multi-sport event being held from 23 July to 8 August 2021 in Tokyo, Japan, with some preliminary events that began on 21 July.
+More than 11,000 athletes from 200 countries took part in these Olympic Games.
+
+Data source: Tokyo 2021 Olympics
+
+https://www.kaggle.com/stefanzivanov/olympic-games-2021-medals 

@@ -1,0 +1,19 @@
+
+
+Data source
+
+Data included in this dataset is from the Gapminder.org website.
+Gapminder documentation
+Inspiration
+
+I was inspired by Hans Rosling visualization and decided to create my own visualization with pandas and seaborn.
+Gapminder (Factfulness graph)
+Description of data
+
+It provides data about the population, life expectancy and GDP in different countries of the world from 1952 to 2007. There is also a separate file for 2007.
+Feedback
+
+I would be really happy to see your own visualizations with this dataset.
+Create new kernel
+
+https://www.kaggle.com/tklimonova/gapminder-datacamp-2007

@@ -1,0 +1,4 @@
+"lp" "name" "price"
+"1" "1" "bag" "30.5"
+"2" "2" "chair" "12.99"
+"3" "3" "dishwasher" "2500"
